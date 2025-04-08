@@ -4,7 +4,7 @@ Simple cron parser written in go
 
 it look something like this:
 ```
-0 9 * * 6 <command>
+0 9 * * 6
 ```
 
 Which can be interpreted using the following:
@@ -30,14 +30,16 @@ For these fields the allowed values are:
 | Day of week  | Yes      | 0–6            | * , -                      |
 
 Each section allows the following operators:
-- * - All numbers in the value range
-- / - How many numbers do you pass
-- - - From X to Z
-- , - hash number
+* - All numbers in the value range
+/ - How many numbers do you pass
+- - From X to Z
+, - hash number
 
 ## Examples
 `* * * * *` - every minute
+
 `* 9 * * SAT` - every minute, between 9:00 and 9:59, on Saturday 
+
 `5 14-15 * 1,3 Mon-Fri` - 14:05 and 15:05, on yan and march, from monday to friday 
 
 
