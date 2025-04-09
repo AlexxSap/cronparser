@@ -1,7 +1,10 @@
 *  cronparser
 
-Simple cron parser written in go.
-it look something like this:
+Simple cron parser for go.
+
+If you need more functionality, you can check out the wonderful repository github.com/robfig/cron .
+
+cron-string look like this:
 #+begin_src
 0 9 * * 6
 #+end_src
