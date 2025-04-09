@@ -2,7 +2,7 @@
 
 Simple cron parser for go.
 
-If you need more functionality, you can check out the wonderful repository github.com/robfig/cron .
+If you need more functionality, you can check out the wonderful repository https://github.com/robfig/cron .
 
 cron-string look like this:
 #+begin_src
