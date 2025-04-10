@@ -2,6 +2,8 @@
 
 Simple cron parser for go.
 
+Requires Go 1.24 or later.
+
 If you need more functionality, you can check out the wonderful repository https://github.com/robfig/cron .
 
 cron-string look like this:
