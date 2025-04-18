@@ -9,13 +9,45 @@ import (
 const (
 	ErrorValidationEmptyString = "ErrorValidationEmptyString"
 	ErrorValidationTokensCount = "ErrorValidationTokensCount"
+
+	MinutesNotMatch    = "MinutesNotMatch"
+	HoursNotMatch      = "HoursNotMatch"
+	DayOfMonthNotMatch = "DayOfMonthNotMatch"
+	MonthNotMatch      = "MonthNotMatch"
+	DayOfWeekNotMatch  = "DayOfWeekNotMatch"
+)
+
+const (
+	symAll    = "*"
+	symStep   = "/"
+	symFromTo = "-"
+	symLst    = ","
+)
+const (
+	typeAll = iota
+	typeSteps
+	typeFromTo
+	typeLst
 )
 
 type token struct {
+	tokenType int
 }
 
 func newToken(str string) (token, error) {
+	if str == symAll {
+		return token{tokenType: typeAll}, nil
+	}
+
 	return token{}, nil
+}
+
+func (tkn token) isMatch(dateTime time.Time) bool {
+	if tkn.tokenType == typeAll {
+		return true
+	}
+
+	return false
 }
 
 type result struct {
@@ -102,7 +134,32 @@ func (crn *CronParser) parse() (result, error) {
 }
 
 func (res result) isMatch(dateTime time.Time) (bool, error) {
-	return false, nil
+	if !res.minute.isMatch(dateTime) {
+		/// TODO добавить тест
+		return false, errors.New(MinutesNotMatch)
+	}
+
+	if !res.hour.isMatch(dateTime) {
+		/// TODO добавить тест
+		return false, errors.New(HoursNotMatch)
+	}
+
+	if !res.dayOfMonth.isMatch(dateTime) {
+		/// TODO добавить тест
+		return false, errors.New(DayOfMonthNotMatch)
+	}
+
+	if !res.month.isMatch(dateTime) {
+		/// TODO добавить тест
+		return false, errors.New(MonthNotMatch)
+	}
+
+	if !res.dayOfWeek.isMatch(dateTime) {
+		/// TODO добавить тест
+		return false, errors.New(DayOfWeekNotMatch)
+	}
+
+	return true, nil
 }
 
 func (crn CronParser) IsMatch(dateTime time.Time) (bool, error) {
