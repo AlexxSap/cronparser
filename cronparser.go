@@ -2,13 +2,19 @@ package cronparser
 
 import (
 	"errors"
+	"fmt"
+	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 const (
 	ErrorValidationEmptyString = "ErrorValidationEmptyString"
 	ErrorValidationTokensCount = "ErrorValidationTokensCount"
+	ErrorValidationUnknown     = "ErrorValidationUnknown"
+
+	InvalidStepSize = "InvalidStepSize"
 
 	MinutesNotMatch    = "MinutesNotMatch"
 	HoursNotMatch      = "HoursNotMatch"
@@ -23,6 +29,7 @@ const (
 	symFromTo = "-"
 	symLst    = ","
 )
+
 const (
 	typeAll = iota
 	typeSteps
@@ -32,6 +39,7 @@ const (
 
 type token struct {
 	tokenType int
+	step      int
 }
 
 func newToken(str string) (token, error) {
@@ -39,12 +47,46 @@ func newToken(str string) (token, error) {
 		return token{tokenType: typeAll}, nil
 	}
 
-	return token{}, nil
+	if strings.HasPrefix(str, symStep) {
+		r, index := utf8.DecodeRuneInString(str)
+		if r == utf8.RuneError {
+			return token{}, errors.New(ErrorValidationUnknown)
+		}
+		step, err := strconv.Atoi(str[index:])
+		if err != nil {
+			/// TODO добавить тест
+			return token{}, fmt.Errorf("%v with: %w", InvalidStepSize, err)
+		}
+
+		if step <= 0 || step > 59 {
+			/// TODO добавить тест
+			return token{}, errors.New(InvalidStepSize)
+		}
+
+		return token{tokenType: typeSteps, step: step}, nil
+	}
+
+	if strings.Contains(str, symFromTo) {
+
+	}
+
+	if strings.Contains(str, symLst) {
+
+	}
+
+	/// TODO добавить тест
+	return token{}, errors.New(ErrorValidationUnknown)
 }
 
 func (tkn token) isMatch(dateTime time.Time) bool {
 	if tkn.tokenType == typeAll {
 		return true
+	}
+
+	if tkn.tokenType == typeSteps {
+		if dateTime.Minute()%tkn.step == 0 {
+			return true
+		}
 	}
 
 	return false
