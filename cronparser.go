@@ -30,61 +30,54 @@ const (
 	symLst    = ","
 )
 
-// type valueType int
+type valueType int
 
 const (
-	typeAll = iota
+	typeAll valueType = iota
 	typeSteps
 	typeFromTo
 	typeLst
 )
 
-// type tokenType int
+type tokenType int
+
 const (
-	minutes = iota
+	minutes tokenType = iota
 	hour
 	dayOfMonth
 	month
 	dayOfWeek
 )
 
-func valueOfDate(date time.Time, typeOfToken int) int {
-	if typeOfToken == minutes {
+func valueOfDate(date time.Time, tType tokenType) int {
+	switch tType {
+	case minutes:
 		return date.Minute()
-	}
-
-	if typeOfToken == hour {
+	case hour:
 		return date.Hour()
-	}
-
-	if typeOfToken == dayOfMonth {
+	case dayOfMonth:
 		return date.Day()
-	}
-
-	if typeOfToken == month {
+	case month:
 		return int(date.Month())
-	}
-
-	if typeOfToken == dayOfWeek {
+	case dayOfWeek:
 		return int(date.Weekday())
 	}
-
 	return 0
 }
 
 type token struct {
-	tokenType int
-	minValue  int
-	maxValue  int
-	step      int
+	vType    valueType
+	minValue int
+	maxValue int
+	step     int
 }
 
 func newToken(str string, minValue, maxValue int) (token, error) {
 	if str == symAll {
 		return token{
-				tokenType: typeAll,
-				minValue:  minValue,
-				maxValue:  maxValue},
+				vType:    typeAll,
+				minValue: minValue,
+				maxValue: maxValue},
 			nil
 	}
 
@@ -105,10 +98,10 @@ func newToken(str string, minValue, maxValue int) (token, error) {
 		}
 
 		return token{
-				tokenType: typeSteps,
-				step:      step,
-				minValue:  minValue,
-				maxValue:  maxValue},
+				vType:    typeSteps,
+				step:     step,
+				minValue: minValue,
+				maxValue: maxValue},
 			nil
 	}
 
@@ -125,21 +118,14 @@ func newToken(str string, minValue, maxValue int) (token, error) {
 }
 
 func (tkn token) isMatch(dateTimeValue int) bool {
-	if tkn.tokenType == typeAll {
+	switch tkn.vType {
+	case typeAll:
 		return true
-	}
-
-	if tkn.tokenType == typeSteps {
-		if dateTimeValue%tkn.step == 0 {
-			return true
-		}
-	}
-
-	if tkn.tokenType == typeFromTo {
+	case typeSteps:
+		return dateTimeValue%tkn.step == 0
+	case typeFromTo:
 		return false
-	}
-
-	if tkn.tokenType == typeLst {
+	case typeLst:
 		return false
 	}
 
