@@ -25,12 +25,14 @@ Which can be interpreted using the following:
 #+end_src
 
 For these fields the allowed values are:
-| Field        | Required | Allowed values | Allowed special characters |
-| Minutes      | Yes      | 0–59           | * , -                      |
-| Hours        | Yes      | 0–23           | * , -                      |
-| Day of month | Yes      | 1–31           | * , -                      |
-| Month        | Yes      | 1–12           | * , -                      |
-| Day of week  | Yes      | 0–6            | * , -                      |
+| Field        | Required | Allowed values   | Allowed special characters |
+| Minutes      | Yes      | 1–59             | * , -                      |
+| Hours        | Yes      | 1–23             | * , -                      |
+| Day of month | Yes      | 1–31             | * , -                      |
+| Month        | Yes      | 1–12 (jan - dec) | * , -                      |
+| Day of week  | Yes      | 1–7 (mon-sun)    | * , -                      |
+
+Week begin from Monday.
 
 Each section allows the following operators:
 - *  All numbers in the value range

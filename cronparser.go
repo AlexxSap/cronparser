@@ -30,6 +30,8 @@ const (
 	symLst    = ","
 )
 
+// type valueType int
+
 const (
 	typeAll = iota
 	typeSteps
@@ -37,14 +39,53 @@ const (
 	typeLst
 )
 
+// type tokenType int
+const (
+	minutes = iota
+	hour
+	dayOfMonth
+	month
+	dayOfWeek
+)
+
+func valueOfDate(date time.Time, typeOfToken int) int {
+	if typeOfToken == minutes {
+		return date.Minute()
+	}
+
+	if typeOfToken == hour {
+		return date.Hour()
+	}
+
+	if typeOfToken == dayOfMonth {
+		return date.Day()
+	}
+
+	if typeOfToken == month {
+		return int(date.Month())
+	}
+
+	if typeOfToken == dayOfWeek {
+		return int(date.Weekday())
+	}
+
+	return 0
+}
+
 type token struct {
 	tokenType int
+	minValue  int
+	maxValue  int
 	step      int
 }
 
-func newToken(str string) (token, error) {
+func newToken(str string, minValue, maxValue int) (token, error) {
 	if str == symAll {
-		return token{tokenType: typeAll}, nil
+		return token{
+				tokenType: typeAll,
+				minValue:  minValue,
+				maxValue:  maxValue},
+			nil
 	}
 
 	if strings.HasPrefix(str, symStep) {
@@ -58,12 +99,17 @@ func newToken(str string) (token, error) {
 			return token{}, fmt.Errorf("%v with: %w", InvalidStepSize, err)
 		}
 
-		if step <= 0 || step > 59 {
+		if step < minValue || step > maxValue {
 			/// TODO добавить тест
 			return token{}, errors.New(InvalidStepSize)
 		}
 
-		return token{tokenType: typeSteps, step: step}, nil
+		return token{
+				tokenType: typeSteps,
+				step:      step,
+				minValue:  minValue,
+				maxValue:  maxValue},
+			nil
 	}
 
 	if strings.Contains(str, symFromTo) {
@@ -78,15 +124,23 @@ func newToken(str string) (token, error) {
 	return token{}, errors.New(ErrorValidationUnknown)
 }
 
-func (tkn token) isMatch(dateTime time.Time) bool {
+func (tkn token) isMatch(dateTimeValue int) bool {
 	if tkn.tokenType == typeAll {
 		return true
 	}
 
 	if tkn.tokenType == typeSteps {
-		if dateTime.Minute()%tkn.step == 0 {
+		if dateTimeValue%tkn.step == 0 {
 			return true
 		}
+	}
+
+	if tkn.tokenType == typeFromTo {
+		return false
+	}
+
+	if tkn.tokenType == typeLst {
+		return false
 	}
 
 	return false
@@ -125,27 +179,27 @@ func tokenize(str string) (result, error) {
 		return result{}, errors.New(ErrorValidationTokensCount)
 	}
 
-	minute, err := newToken(strTokens[0])
+	minute, err := newToken(strTokens[0], 1, 59)
 	if err != nil {
 		return result{}, err
 	}
 
-	hour, err := newToken(strTokens[1])
+	hour, err := newToken(strTokens[1], 1, 23)
 	if err != nil {
 		return result{}, err
 	}
 
-	dayOfMonth, err := newToken(strTokens[2])
+	dayOfMonth, err := newToken(strTokens[2], 1, 31)
 	if err != nil {
 		return result{}, err
 	}
 
-	month, err := newToken(strTokens[3])
+	month, err := newToken(strTokens[3], 1, 12)
 	if err != nil {
 		return result{}, err
 	}
 
-	dayOfWeek, err := newToken(strTokens[4])
+	dayOfWeek, err := newToken(strTokens[4], 1, 7)
 	if err != nil {
 		return result{}, err
 	}
@@ -176,27 +230,27 @@ func (crn *CronParser) parse() (result, error) {
 }
 
 func (res result) isMatch(dateTime time.Time) (bool, error) {
-	if !res.minute.isMatch(dateTime) {
+	if !res.minute.isMatch(valueOfDate(dateTime, minutes)) {
 		/// TODO добавить тест
 		return false, errors.New(MinutesNotMatch)
 	}
 
-	if !res.hour.isMatch(dateTime) {
+	if !res.hour.isMatch(valueOfDate(dateTime, hour)) {
 		/// TODO добавить тест
 		return false, errors.New(HoursNotMatch)
 	}
 
-	if !res.dayOfMonth.isMatch(dateTime) {
+	if !res.dayOfMonth.isMatch(valueOfDate(dateTime, dayOfMonth)) {
 		/// TODO добавить тест
 		return false, errors.New(DayOfMonthNotMatch)
 	}
 
-	if !res.month.isMatch(dateTime) {
+	if !res.month.isMatch(valueOfDate(dateTime, month)) {
 		/// TODO добавить тест
 		return false, errors.New(MonthNotMatch)
 	}
 
-	if !res.dayOfWeek.isMatch(dateTime) {
+	if !res.dayOfWeek.isMatch(valueOfDate(dateTime, dayOfWeek)) {
 		/// TODO добавить тест
 		return false, errors.New(DayOfWeekNotMatch)
 	}
