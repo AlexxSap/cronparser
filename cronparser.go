@@ -72,46 +72,60 @@ type token struct {
 	step     uint8
 }
 
+func newAllToken(minValue, maxValue uint8) (token, error) {
+	return token{
+			vType:    typeAll,
+			minValue: minValue,
+			maxValue: maxValue},
+		nil
+}
+
+func newStepToken(str string, minValue, maxValue uint8) (token, error) {
+	r, index := utf8.DecodeRuneInString(str)
+	if r == utf8.RuneError {
+		return token{}, errors.New(ErrorValidationUnknown)
+	}
+	stepInt, err := strconv.Atoi(str[index:])
+	if err != nil {
+		/// TODO добавить тест
+		return token{}, fmt.Errorf("%v with: %w", InvalidStepSize, err)
+	}
+
+	step := uint8(stepInt)
+	if step < minValue || step > maxValue {
+		/// TODO добавить тест
+		return token{}, errors.New(InvalidStepSize)
+	}
+
+	return token{
+			vType:    typeSteps,
+			step:     step,
+			minValue: minValue,
+			maxValue: maxValue},
+		nil
+}
+
+func newFromToToken(str string, minValue, maxValue uint8) (token, error) {
+}
+
+func newLstToken(str string, minValue, maxValue uint8) (token, error) {
+}
+
 func newToken(str string, minValue, maxValue uint8) (token, error) {
 	if str == symAll {
-		return token{
-				vType:    typeAll,
-				minValue: minValue,
-				maxValue: maxValue},
-			nil
+		return newAllToken(minValue, maxValue)
 	}
 
 	if strings.HasPrefix(str, symStep) {
-		r, index := utf8.DecodeRuneInString(str)
-		if r == utf8.RuneError {
-			return token{}, errors.New(ErrorValidationUnknown)
-		}
-		stepInt, err := strconv.Atoi(str[index:])
-		if err != nil {
-			/// TODO добавить тест
-			return token{}, fmt.Errorf("%v with: %w", InvalidStepSize, err)
-		}
-
-		step := uint8(stepInt)
-		if step < minValue || step > maxValue {
-			/// TODO добавить тест
-			return token{}, errors.New(InvalidStepSize)
-		}
-
-		return token{
-				vType:    typeSteps,
-				step:     step,
-				minValue: minValue,
-				maxValue: maxValue},
-			nil
+		return newStepToken(str, minValue, maxValue)
 	}
 
 	if strings.Contains(str, symFromTo) {
-
+		return newFromToToken(str, minValue, maxValue)
 	}
 
 	if strings.Contains(str, symLst) {
-
+		return newLstToken(str, minValue, maxValue)
 	}
 
 	/// TODO добавить тест
