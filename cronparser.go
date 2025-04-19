@@ -30,7 +30,7 @@ const (
 	symLst    = ","
 )
 
-type valueType int
+type valueType uint8
 
 const (
 	typeAll valueType = iota
@@ -39,7 +39,7 @@ const (
 	typeLst
 )
 
-type tokenType int
+type tokenType uint8
 
 const (
 	minutes tokenType = iota
@@ -49,30 +49,30 @@ const (
 	dayOfWeek
 )
 
-func valueOfDate(date time.Time, tType tokenType) int {
+func valueOfDate(date time.Time, tType tokenType) uint8 {
 	switch tType {
 	case minutes:
-		return date.Minute()
+		return uint8(date.Minute())
 	case hour:
-		return date.Hour()
+		return uint8(date.Hour())
 	case dayOfMonth:
-		return date.Day()
+		return uint8(date.Day())
 	case month:
-		return int(date.Month())
+		return uint8(date.Month())
 	case dayOfWeek:
-		return int(date.Weekday())
+		return uint8(date.Weekday())
 	}
 	return 0
 }
 
 type token struct {
 	vType    valueType
-	minValue int
-	maxValue int
-	step     int
+	minValue uint8
+	maxValue uint8
+	step     uint8
 }
 
-func newToken(str string, minValue, maxValue int) (token, error) {
+func newToken(str string, minValue, maxValue uint8) (token, error) {
 	if str == symAll {
 		return token{
 				vType:    typeAll,
@@ -86,12 +86,13 @@ func newToken(str string, minValue, maxValue int) (token, error) {
 		if r == utf8.RuneError {
 			return token{}, errors.New(ErrorValidationUnknown)
 		}
-		step, err := strconv.Atoi(str[index:])
+		stepInt, err := strconv.Atoi(str[index:])
 		if err != nil {
 			/// TODO добавить тест
 			return token{}, fmt.Errorf("%v with: %w", InvalidStepSize, err)
 		}
 
+		step := uint8(stepInt)
 		if step < minValue || step > maxValue {
 			/// TODO добавить тест
 			return token{}, errors.New(InvalidStepSize)
@@ -117,7 +118,7 @@ func newToken(str string, minValue, maxValue int) (token, error) {
 	return token{}, errors.New(ErrorValidationUnknown)
 }
 
-func (tkn token) isMatch(dateTimeValue int) bool {
+func (tkn token) isMatch(dateTimeValue uint8) bool {
 	switch tkn.vType {
 	case typeAll:
 		return true
