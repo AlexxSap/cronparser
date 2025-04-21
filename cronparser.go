@@ -14,7 +14,10 @@ const (
 	ErrorValidationTokensCount = "ErrorValidationTokensCount"
 	ErrorValidationUnknown     = "ErrorValidationUnknown"
 
-	InvalidStepSize = "InvalidStepSize"
+	InvalidStepSize         = "InvalidStepSize"
+	InvalidFromToValues     = "InvalidFromToSize"
+	InvalidFromToValuesSize = "InvalidFromToValuesSize"
+	InvalidListValues       = "InvalidListValues"
 
 	MinutesNotMatch    = "MinutesNotMatch"
 	HoursNotMatch      = "HoursNotMatch"
@@ -66,10 +69,11 @@ func valueOfDate(date time.Time, tType tokenType) uint8 {
 }
 
 type token struct {
-	vType    valueType
-	minValue uint8
-	maxValue uint8
-	step     uint8
+	vType     valueType
+	minValue  uint8
+	maxValue  uint8
+	step      uint8
+	lstValues []uint8
 }
 
 func newAllToken(minValue, maxValue uint8) (token, error) {
@@ -106,9 +110,71 @@ func newStepToken(str string, minValue, maxValue uint8) (token, error) {
 }
 
 func newFromToToken(str string, minValue, maxValue uint8) (token, error) {
+	nums := strings.Split(str, "-")
+	if len(nums) != 2 {
+		/// TODO добавить тест
+		return token{}, errors.New(InvalidFromToValuesSize)
+	}
+
+	getValue := func(str string) (uint8, error) {
+		valueInt, err := strconv.Atoi(str)
+		if err != nil {
+			/// TODO добавить тест
+			return 0, fmt.Errorf("%v with: %w", InvalidFromToValues, err)
+		}
+
+		val := uint8(valueInt)
+		if val < minValue || val > maxValue {
+			/// TODO добавить тест
+			return 0, errors.New(InvalidFromToValues)
+		}
+		return val, nil
+	}
+
+	valFrom, err := getValue(nums[0])
+	if err != nil {
+		return token{}, err
+	}
+	valTo, err := getValue(nums[1])
+	if err != nil {
+		/// TODO добавить тест
+		return token{}, err
+	}
+
+	return token{
+			vType:    typeFromTo,
+			step:     0,
+			minValue: valFrom,
+			maxValue: valTo},
+		nil
 }
 
 func newLstToken(str string, minValue, maxValue uint8) (token, error) {
+	nums := strings.Split(str, "-")
+
+	values := make([]uint8, 0, len(nums))
+	for _, num := range nums {
+		valueInt, err := strconv.Atoi(num)
+		if err != nil {
+			/// TODO добавить тест
+			return token{}, fmt.Errorf("%v with: %w", InvalidListValues, err)
+		}
+
+		val := uint8(valueInt)
+		if val < minValue || val > maxValue {
+			/// TODO добавить тест
+			return token{}, errors.New(InvalidListValues)
+		}
+		values = append(values, val)
+	}
+
+	return token{
+			vType:     typeLst,
+			step:      0,
+			minValue:  minValue,
+			maxValue:  maxValue,
+			lstValues: values},
+		nil
 }
 
 func newToken(str string, minValue, maxValue uint8) (token, error) {
