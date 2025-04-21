@@ -32,7 +32,7 @@ For these fields the allowed values are:
 | Month        | Yes      | 1–12 (jan - dec) | * , -                      |
 | Day of week  | Yes      | 1–7 (mon-sun)    | * , -                      |
 
-Week begin from Monday.
+Week begin from Monday. If you do not agree with this, you can create an issue.
 
 Each section allows the following operators:
 - *  All numbers in the value range
