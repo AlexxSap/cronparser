@@ -3,6 +3,7 @@ package cronparser
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -227,9 +228,9 @@ func (tkn token) isMatch(dateTimeValue uint8) bool {
 	case typeSteps:
 		return dateTimeValue%tkn.step == 0
 	case typeFromTo:
-		return false /// TODO дописать
+		return dateTimeValue >= tkn.minValue && dateTimeValue <= tkn.maxValue
 	case typeLst:
-		return false /// TODO дописать
+		return slices.Contains(tkn.lstValues, dateTimeValue)
 	case typeSimple:
 		return tkn.step == dateTimeValue
 	}
@@ -256,6 +257,36 @@ func NewCronParser(str string) CronParser {
 		cronString:          str,
 		alreadyParsedResult: result{},
 		hasResult:           false}
+}
+
+func replaceMonthNamesToNumber(str string) string {
+	lstr := strings.ToLower(str)
+	lstr = strings.ReplaceAll(lstr, "jan", "1")
+	lstr = strings.ReplaceAll(lstr, "feb", "2")
+	lstr = strings.ReplaceAll(lstr, "mar", "3")
+	lstr = strings.ReplaceAll(lstr, "apr", "4")
+	lstr = strings.ReplaceAll(lstr, "may", "5")
+	lstr = strings.ReplaceAll(lstr, "jun", "6")
+	lstr = strings.ReplaceAll(lstr, "jul", "7")
+	lstr = strings.ReplaceAll(lstr, "aug", "8")
+	lstr = strings.ReplaceAll(lstr, "sep", "9")
+	lstr = strings.ReplaceAll(lstr, "oct", "10")
+	lstr = strings.ReplaceAll(lstr, "nov", "11")
+	lstr = strings.ReplaceAll(lstr, "dec", "12")
+
+	return lstr
+}
+
+func replaceDayNamesToNumber(str string) string {
+	lstr := strings.ToLower(str)
+	lstr = strings.ReplaceAll(lstr, "mon", "1")
+	lstr = strings.ReplaceAll(lstr, "tue", "2")
+	lstr = strings.ReplaceAll(lstr, "wed", "3")
+	lstr = strings.ReplaceAll(lstr, "thu", "4")
+	lstr = strings.ReplaceAll(lstr, "fri", "5")
+	lstr = strings.ReplaceAll(lstr, "sat", "6")
+	lstr = strings.ReplaceAll(lstr, "sun", "7")
+	return lstr
 }
 
 func tokenize(str string) (result, error) {
@@ -285,12 +316,12 @@ func tokenize(str string) (result, error) {
 		return result{}, err
 	}
 
-	month, err := newToken(strTokens[3], 1, 12)
+	month, err := newToken(replaceMonthNamesToNumber(strTokens[3]), 1, 12)
 	if err != nil {
 		return result{}, err
 	}
 
-	dayOfWeek, err := newToken(strTokens[4], 1, 7)
+	dayOfWeek, err := newToken(replaceDayNamesToNumber(strTokens[4]), 1, 7)
 	if err != nil {
 		return result{}, err
 	}
