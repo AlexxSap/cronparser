@@ -31,6 +31,7 @@ func TestIsMatch(t *testing.T) {
 		//5 14-15 * 1,3 Mon-Fri - 14:05 and 15:05, on januar and march, from monday to friday
 		{"5 14-15 * 1,3 mon-Fri", date(2025, 1, 16, 14, 5), true},
 		{"5 14-15 * 1,3 mon-Fri", date(2025, 3, 14, 14, 5), true},
+		{"5 14-15 * 1,3 1-5", date(2025, 3, 14, 14, 5), true},
 		{"5 14-15 * 1,3 mon-Fri", date(2025, 3, 15, 15, 1), false},
 		{"5 14-15 * 1,3 mon-Fri", date(2025, 3, 14, 15, 6), false},
 
@@ -42,16 +43,9 @@ func TestIsMatch(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		/// TODO добавить проверку ошибок
-		// actual, err := NewCronParser(test.cronString).IsMatch(test.date)
-		// if err != nil {
-		// t.Errorf("error: %v on string '%v' with date '%v'", err, test.cronString, test.date)
-		// }
-
-		actual, _ := NewCronParser(test.cronString).IsMatch(test.date)
-
+		actual, err := NewCronParser(test.cronString).IsMatch(test.date)
 		if actual != test.expected {
-			t.Errorf("fail on string '%v' with date '%v'", test.cronString, test.date)
+			t.Errorf("fail on string '%v' with date '%v' with err: %v", test.cronString, test.date, err)
 		}
 	}
 }

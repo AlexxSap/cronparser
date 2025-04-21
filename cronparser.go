@@ -18,6 +18,7 @@ const (
 	InvalidFromToValues     = "InvalidFromToSize"
 	InvalidFromToValuesSize = "InvalidFromToValuesSize"
 	InvalidListValues       = "InvalidListValues"
+	InvalidSimpleValues     = "InvalidSimpleValues"
 
 	MinutesNotMatch    = "MinutesNotMatch"
 	HoursNotMatch      = "HoursNotMatch"
@@ -40,6 +41,7 @@ const (
 	typeSteps
 	typeFromTo
 	typeLst
+	typeSimple
 )
 
 type tokenType uint8
@@ -110,7 +112,7 @@ func newStepToken(str string, minValue, maxValue uint8) (token, error) {
 }
 
 func newFromToToken(str string, minValue, maxValue uint8) (token, error) {
-	nums := strings.Split(str, "-")
+	nums := strings.Split(str, symFromTo)
 	if len(nums) != 2 {
 		/// TODO добавить тест
 		return token{}, errors.New(InvalidFromToValuesSize)
@@ -150,7 +152,7 @@ func newFromToToken(str string, minValue, maxValue uint8) (token, error) {
 }
 
 func newLstToken(str string, minValue, maxValue uint8) (token, error) {
-	nums := strings.Split(str, "-")
+	nums := strings.Split(str, symLst)
 
 	values := make([]uint8, 0, len(nums))
 	for _, num := range nums {
@@ -177,6 +179,27 @@ func newLstToken(str string, minValue, maxValue uint8) (token, error) {
 		nil
 }
 
+func newSimpleNumberToken(str string, minValue, maxValue uint8) (token, error) {
+	valueInt, err := strconv.Atoi(str)
+	if err != nil {
+		/// TODO добавить тест
+		return token{}, fmt.Errorf("%v with: %w", InvalidSimpleValues, err)
+	}
+
+	val := uint8(valueInt)
+	if val < minValue || val > maxValue {
+		/// TODO добавить тест
+		return token{}, errors.New(InvalidSimpleValues)
+	}
+
+	return token{
+			vType:    typeSimple,
+			step:     val,
+			minValue: minValue,
+			maxValue: maxValue},
+		nil
+}
+
 func newToken(str string, minValue, maxValue uint8) (token, error) {
 	if str == symAll {
 		return newAllToken(minValue, maxValue)
@@ -194,8 +217,7 @@ func newToken(str string, minValue, maxValue uint8) (token, error) {
 		return newLstToken(str, minValue, maxValue)
 	}
 
-	/// TODO добавить тест
-	return token{}, errors.New(ErrorValidationUnknown)
+	return newSimpleNumberToken(str, minValue, maxValue)
 }
 
 func (tkn token) isMatch(dateTimeValue uint8) bool {
@@ -205,9 +227,11 @@ func (tkn token) isMatch(dateTimeValue uint8) bool {
 	case typeSteps:
 		return dateTimeValue%tkn.step == 0
 	case typeFromTo:
-		return false
+		return false /// TODO дописать
 	case typeLst:
-		return false
+		return false /// TODO дописать
+	case typeSimple:
+		return tkn.step == dateTimeValue
 	}
 
 	return false
