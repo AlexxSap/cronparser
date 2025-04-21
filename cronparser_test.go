@@ -1,6 +1,7 @@
 package cronparser
 
 import (
+	"fmt"
 	"testing"
 	"time"
 )
@@ -47,5 +48,12 @@ func TestIsMatch(t *testing.T) {
 		if actual != test.expected {
 			t.Errorf("fail on string '%v' with date '%v' with err: %v", test.cronString, test.date, err)
 		}
+	}
+}
+
+func BenchmarkIsMatch(b *testing.B) {
+	pattern := "%d %d 1-%d 3-%d 2-5"
+	for i := 0; i < b.N; i++ {
+		NewCronParser(fmt.Sprintf(pattern, i%60, i%24, i%25, i%12)).IsMatch(date(2025, 1, 6, 14, 15))
 	}
 }
