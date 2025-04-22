@@ -6,4 +6,4 @@ vet:
 	go vet
 
 tests: vet
-	go test
+	go test -v

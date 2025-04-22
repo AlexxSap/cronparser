@@ -51,6 +51,37 @@ func TestIsMatch(t *testing.T) {
 	}
 }
 
+func TestValidationTokenize(t *testing.T) {
+	tests := []struct {
+		str string
+		err string
+	}{
+		{"", ErrorValidationEmptyString},
+		{"* * * *", ErrorValidationTokensCount},
+		{"/5 * * 1-2 * *", ErrorValidationTokensCount},
+		{"/a * * * *", "InvalidStepSize with: strconv.Atoi: parsing \"a\": invalid syntax"},
+		{"/77 * * * *", InvalidStepSize},
+		{"* * /-33 * *", InvalidStepSize},
+		{"1-2-3 * * * *", InvalidFromToValuesSize},
+		{"1- * * * *", "InvalidFromToSize with: strconv.Atoi: parsing \"\": invalid syntax"},
+		{"1-a * * * *", "InvalidFromToSize with: strconv.Atoi: parsing \"a\": invalid syntax"},
+		{"1-223 * * * *", InvalidFromToValues},
+		{"111-22 * * * *", InvalidFromToValues},
+		{"22-11 * * * *", InvalidFromToValues},
+		{"1,a * * * *", "InvalidListValues with: strconv.Atoi: parsing \"a\": invalid syntax"},
+		{"1,11,111 * * * *", InvalidListValues},
+		{"1a * * * *", "InvalidSimpleValues with: strconv.Atoi: parsing \"1a\": invalid syntax"},
+		{"111 * * * *", InvalidSimpleValues},
+	}
+
+	for _, test := range tests {
+		_, err := tokenize(test.str)
+		if err.Error() != test.err {
+			t.Errorf("fail on string '%v' with error '%v' (expected '%v')", test.str, err, test.err)
+		}
+	}
+}
+
 func BenchmarkIsMatch(b *testing.B) {
 	pattern := "%d %d 1-%d 3-%d 2-5"
 	for i := 0; i < b.N; i++ {

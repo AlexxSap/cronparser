@@ -13,8 +13,8 @@ import (
 const (
 	ErrorValidationEmptyString = "ErrorValidationEmptyString"
 	ErrorValidationTokensCount = "ErrorValidationTokensCount"
-	ErrorValidationUnknown     = "ErrorValidationUnknown"
 
+	InvalidStepFormat       = "InvalidStepFormat"
 	InvalidStepSize         = "InvalidStepSize"
 	InvalidFromToValues     = "InvalidFromToSize"
 	InvalidFromToValuesSize = "InvalidFromToValuesSize"
@@ -90,17 +90,15 @@ func newAllToken(minValue, maxValue uint8) (token, error) {
 func newStepToken(str string, minValue, maxValue uint8) (token, error) {
 	r, index := utf8.DecodeRuneInString(str)
 	if r == utf8.RuneError {
-		return token{}, errors.New(ErrorValidationUnknown)
+		return token{}, errors.New(InvalidStepFormat)
 	}
 	stepInt, err := strconv.Atoi(str[index:])
 	if err != nil {
-		/// TODO добавить тест
 		return token{}, fmt.Errorf("%v with: %w", InvalidStepSize, err)
 	}
 
 	step := uint8(stepInt)
 	if step < minValue || step > maxValue {
-		/// TODO добавить тест
 		return token{}, errors.New(InvalidStepSize)
 	}
 
@@ -115,20 +113,17 @@ func newStepToken(str string, minValue, maxValue uint8) (token, error) {
 func newFromToToken(str string, minValue, maxValue uint8) (token, error) {
 	nums := strings.Split(str, symFromTo)
 	if len(nums) != 2 {
-		/// TODO добавить тест
 		return token{}, errors.New(InvalidFromToValuesSize)
 	}
 
 	getValue := func(str string) (uint8, error) {
 		valueInt, err := strconv.Atoi(str)
 		if err != nil {
-			/// TODO добавить тест
 			return 0, fmt.Errorf("%v with: %w", InvalidFromToValues, err)
 		}
 
 		val := uint8(valueInt)
 		if val < minValue || val > maxValue {
-			/// TODO добавить тест
 			return 0, errors.New(InvalidFromToValues)
 		}
 		return val, nil
@@ -140,8 +135,11 @@ func newFromToToken(str string, minValue, maxValue uint8) (token, error) {
 	}
 	valTo, err := getValue(nums[1])
 	if err != nil {
-		/// TODO добавить тест
 		return token{}, err
+	}
+
+	if valTo <= valFrom {
+		return token{}, errors.New(InvalidFromToValues)
 	}
 
 	return token{
@@ -159,13 +157,11 @@ func newLstToken(str string, minValue, maxValue uint8) (token, error) {
 	for _, num := range nums {
 		valueInt, err := strconv.Atoi(num)
 		if err != nil {
-			/// TODO добавить тест
 			return token{}, fmt.Errorf("%v with: %w", InvalidListValues, err)
 		}
 
 		val := uint8(valueInt)
 		if val < minValue || val > maxValue {
-			/// TODO добавить тест
 			return token{}, errors.New(InvalidListValues)
 		}
 		values = append(values, val)
@@ -183,13 +179,11 @@ func newLstToken(str string, minValue, maxValue uint8) (token, error) {
 func newSimpleNumberToken(str string, minValue, maxValue uint8) (token, error) {
 	valueInt, err := strconv.Atoi(str)
 	if err != nil {
-		/// TODO добавить тест
 		return token{}, fmt.Errorf("%v with: %w", InvalidSimpleValues, err)
 	}
 
 	val := uint8(valueInt)
 	if val < minValue || val > maxValue {
-		/// TODO добавить тест
 		return token{}, errors.New(InvalidSimpleValues)
 	}
 
@@ -291,13 +285,11 @@ func replaceDayNamesToNumber(str string) string {
 
 func tokenize(str string) (result, error) {
 	if len(str) == 0 {
-		/// TODO добавить тест
 		return result{}, errors.New(ErrorValidationEmptyString)
 	}
 
 	strTokens := strings.Fields(str)
 	if len(strTokens) != 5 {
-		/// TODO добавить тест
 		return result{}, errors.New(ErrorValidationTokensCount)
 	}
 
