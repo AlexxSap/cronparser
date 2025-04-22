@@ -10,43 +10,55 @@ func date(year int, month time.Month, day, hour, min int) time.Time {
 	return time.Date(year, month, day, hour, min, 0, 0, time.UTC)
 }
 
+func errToStr(err error) string {
+	if err == nil {
+		return ""
+	}
+	return err.Error()
+}
+
 func TestIsMatch(t *testing.T) {
 	tests := []struct {
 		cronString string
 		date       time.Time
 		expected   bool
+		err        string
 	}{
 		// every minute is match
-		{"* * * * *", date(2025, 4, 1, 12, 33), true},
-		{"* * * * *", date(2012, 12, 12, 12, 12), true},
+		{"* * * * *", date(2025, 4, 1, 12, 33), true, ""},
+		{"* * * * *", date(2012, 12, 12, 12, 12), true, ""},
 
 		// every 5 minutes
-		{"/5 * * * *", date(2012, 12, 12, 12, 25), true},
-		{"/5 * * * *", date(2012, 12, 12, 12, 26), false},
+		{"/5 * * * *", date(2012, 12, 12, 12, 25), true, ""},
+		{"/5 * * * *", date(2012, 12, 12, 12, 26), false, MinutesNotMatch},
 
 		//* 9 * * SAT - every minute, between 9:00 and 9:59, on saturday
-		{"* 9 * * SAT", date(2025, 4, 19, 9, 12), true},
-		{"* 9 * * SAT", date(2025, 4, 19, 10, 12), false},
-		{"* 9 * * SAT", date(2025, 4, 18, 9, 12), false},
+		{"* 9 * * SAT", date(2025, 4, 19, 9, 12), true, ""},
+		{"* 9 * * SAT", date(2025, 4, 19, 10, 12), false, HoursNotMatch},
+		{"* 9 * * SAT", date(2025, 4, 18, 9, 12), false, DayOfWeekNotMatch},
+		{"* 9 19 * SAT", date(2025, 4, 18, 9, 12), false, DayOfMonthNotMatch},
+		{"* 9 19 3 SAT", date(2025, 4, 19, 9, 12), false, MonthNotMatch},
 
 		//5 14-15 * 1,3 Mon-Fri - 14:05 and 15:05, on januar and march, from monday to friday
-		{"5 14-15 * 1,3 mon-Fri", date(2025, 1, 16, 14, 5), true},
-		{"5 14-15 * 1,3 mon-Fri", date(2025, 3, 14, 14, 5), true},
-		{"5 14-15 * 1,3 1-5", date(2025, 3, 14, 14, 5), true},
-		{"5 14-15 * 1,3 mon-Fri", date(2025, 3, 15, 15, 1), false},
-		{"5 14-15 * 1,3 mon-Fri", date(2025, 3, 14, 15, 6), false},
+		{"5 14-15 * 1,3 mon-Fri", date(2025, 1, 16, 14, 5), true, ""},
+		{"5 14-15 * 1,3 mon-Fri", date(2025, 3, 14, 14, 5), true, ""},
+		{"5 14-15 * 1,3 1-5", date(2025, 3, 14, 14, 5), true, ""},
+		{"5 14-15 * 1,3 mon-Fri", date(2025, 3, 15, 15, 1), false, MinutesNotMatch},
+		{"5 14-15 * 1,3 mon-Fri", date(2025, 3, 14, 15, 6), false, MinutesNotMatch},
 
 		///5 14 6-11 1 mon - every 5 minutes between 14:00 and 14:55, on 6-11 januar in monday
-		{"/5 14 6-11 1 mon", date(2025, 1, 6, 14, 15), true},
-		{"/5 14 6-11 1 mon", date(2025, 1, 6, 14, 35), true},
-		{"/5 14 6-11 1 mon", date(2025, 1, 7, 14, 15), false},
-		{"/5 14 6-11 1 mon", date(2025, 1, 6, 14, 13), false},
+		{"/5 14 6-11 1 mon", date(2025, 1, 6, 14, 15), true, ""},
+		{"/5 14 6-11 1 mon", date(2025, 1, 6, 14, 35), true, ""},
+		{"/5 14 6-11 1 mon", date(2025, 1, 7, 14, 15), false, DayOfWeekNotMatch},
+		{"/5 14 6-11 1 mon", date(2025, 1, 6, 14, 13), false, MinutesNotMatch},
 	}
 
 	for _, test := range tests {
 		actual, err := NewCronParser(test.cronString).IsMatch(test.date)
 		if actual != test.expected {
 			t.Errorf("fail on string '%v' with date '%v' with err: %v", test.cronString, test.date, err)
+		} else if errToStr(err) != test.err {
+			t.Errorf("fail on string '%v' with date '%v' with err: %v (expected error: '%v')", test.cronString, test.date, err, test.err)
 		}
 	}
 }

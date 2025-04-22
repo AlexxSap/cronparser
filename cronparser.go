@@ -345,27 +345,22 @@ func (crn *CronParser) parse() (result, error) {
 
 func (res result) isMatch(dateTime time.Time) (bool, error) {
 	if !res.minute.isMatch(valueOfDate(dateTime, minutes)) {
-		/// TODO добавить тест
 		return false, errors.New(MinutesNotMatch)
 	}
 
 	if !res.hour.isMatch(valueOfDate(dateTime, hour)) {
-		/// TODO добавить тест
 		return false, errors.New(HoursNotMatch)
 	}
 
 	if !res.dayOfMonth.isMatch(valueOfDate(dateTime, dayOfMonth)) {
-		/// TODO добавить тест
 		return false, errors.New(DayOfMonthNotMatch)
 	}
 
 	if !res.month.isMatch(valueOfDate(dateTime, month)) {
-		/// TODO добавить тест
 		return false, errors.New(MonthNotMatch)
 	}
 
 	if !res.dayOfWeek.isMatch(valueOfDate(dateTime, dayOfWeek)) {
-		/// TODO добавить тест
 		return false, errors.New(DayOfWeekNotMatch)
 	}
 
