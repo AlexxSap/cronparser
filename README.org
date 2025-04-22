@@ -3,6 +3,7 @@
 Simple cron parser for go.
 
 Requires Go 1.24 or later.
+Does not require external dependencies.
 
 If you need more functionality, you can check out the wonderful repository https://github.com/robfig/cron .
 
