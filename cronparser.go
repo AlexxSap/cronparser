@@ -373,9 +373,6 @@ func (res result) isMatch(dateTime time.Time) (bool, error) {
 // Returns:
 // - the result of checking (true or false)
 // - error with failure case (if first result is false)
-// Examples:
-// res, err := NewCronParser("5 14-15 * 1,3 mon-Fri").IsMatch(time.Date(2025, 3, 14, 14, 5, 0, 0, time.UTC)) // result will be (true, nil)
-// res, err := NewCronParser("5 14-15 * 1,3 mon-Fri").IsMatch(time.Date(2025, 3, 15, 15, 5, 0, 0, time.UTC)) // result will be (false, DayOfWeekNotMatch)
 func (crn CronParser) IsMatch(dateTime time.Time) (bool, error) {
 	parsed, err := crn.parse()
 	if err != nil {

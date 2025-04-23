@@ -100,3 +100,21 @@ func BenchmarkIsMatch(b *testing.B) {
 		NewCronParser(fmt.Sprintf(pattern, i%60, i%24, i%25, i%12)).IsMatch(date(2025, 1, 6, 14, 15))
 	}
 }
+
+func ExampleCronParser_IsMatch() {
+	actual, err := NewCronParser("/5 14 6-11 1 mon").IsMatch(time.Date(2025, 1, 6, 14, 35, 0, 0, time.UTC))
+	fmt.Println("actual:", actual)
+	fmt.Println("err:", err)
+	// Output:
+	// actual: true
+	// err: <nil>
+}
+
+func ExampleCronParser_IsMatch_second() {
+	actual, err := NewCronParser("/5 14 6-11 1 mon").IsMatch(time.Date(2025, 1, 7, 14, 35, 0, 0, time.UTC))
+	fmt.Println("actual:", actual)
+	fmt.Println("err:", err)
+	// Output:
+	// actual: false
+	// err: DayOfWeekNotMatch
+}
