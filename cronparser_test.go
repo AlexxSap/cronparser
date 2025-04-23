@@ -94,6 +94,31 @@ func TestValidationTokenize(t *testing.T) {
 	}
 }
 
+func TestNearestDate(t *testing.T) {
+	tests := []struct {
+		str          string
+		currentDate  time.Time
+		expectedDate time.Time
+		err          string
+	}{
+		{"/5 14 6-11 1 mon", date(2025, 1, 6, 14, 12), date(2025, 1, 6, 14, 15), ""},
+		{"/5 14 6-11 1 mon", date(2025, 1, 6, 13, 55), date(2025, 1, 6, 14, 0), ""},
+
+		/// TODO кейс на день месяца
+		/// TODO кейс на месяц
+		/// TODO кейс на день недели
+	}
+
+	for _, test := range tests {
+		act, err := NewCronParser(test.str).NearestDate(test.currentDate)
+		if act != test.expectedDate {
+			t.Errorf("fail on string '%v' expected '%v' get '%v' with error '%v'", test.str, test.expectedDate, act, err)
+		} else if errToStr(err) != test.err {
+			t.Errorf("fail on string '%v' with error '%v' (expected '%v')", test.str, err, test.err)
+		}
+	}
+}
+
 func BenchmarkIsMatch(b *testing.B) {
 	pattern := "%d %d 1-%d 3-%d 2-5"
 	for i := 0; i < b.N; i++ {

@@ -386,3 +386,8 @@ func (crn CronParser) IsMatch(dateTime time.Time) (bool, error) {
 
 	return isMatch, nil
 }
+
+// / TODO добавить комментарии
+func (crn CronParser) NearestDate(currentDate time.Time) (time.Time, error) {
+	return time.Date(0, 0, 0, 0, 0, 0, 0, time.UTC), nil
+}
