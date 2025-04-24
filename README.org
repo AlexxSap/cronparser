@@ -14,12 +14,11 @@ cron-string look like this:
 
 Which can be interpreted using the following:
 #+begin_src
-# ┌───────────── minute (0–59)
-# │ ┌───────────── hour (0–23)
-# │ │ ┌───────────── day of the month (1–31)
-# │ │ │ ┌───────────── month (1–12)
-# │ │ │ │ ┌───────────── day of the week (0–6) (Sunday to Saturday;
-# │ │ │ │ │                                   7 is Sunday on some systems)
+# ┌───────────── minute 
+# │ ┌───────────── hour 
+# │ │ ┌───────────── day of the month
+# │ │ │ ┌───────────── month 
+# │ │ │ │ ┌───────────── day of the week
 # │ │ │ │ │
 # │ │ │ │ │
 # * * * * *
@@ -27,8 +26,8 @@ Which can be interpreted using the following:
 
 For these fields the allowed values are:
 | Field        | Required | Allowed values   | Allowed special characters |
-| Minutes      | Yes      | 1–59             | * , -                      |
-| Hours        | Yes      | 1–23             | * , -                      |
+| Minutes      | Yes      | 0–59             | * , -                      |
+| Hours        | Yes      | 0–23             | * , -                      |
 | Day of month | Yes      | 1–31             | * , -                      |
 | Month        | Yes      | 1–12 (jan - dec) | * , -                      |
 | Day of week  | Yes      | 1–7 (mon-sun)    | * , -                      |
