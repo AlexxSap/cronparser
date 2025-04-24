@@ -51,6 +51,10 @@ func TestIsMatch(t *testing.T) {
 		{"/5 14 6-11 1 mon", date(2025, 1, 6, 14, 35), true, ""},
 		{"/5 14 6-11 1 mon", date(2025, 1, 7, 14, 15), false, DayOfWeekNotMatch},
 		{"/5 14 6-11 1 mon", date(2025, 1, 6, 14, 13), false, MinutesNotMatch},
+
+		/// * * 30 1,2 * - 30 jan or 30 feb. but 30 feb does not exists
+		{"* * 30 1,2 *", date(2025, 1, 30, 0, 0), true, ""},
+		{"* * 30 1,2 *", date(2025, 2, 30, 0, 0), false, DayOfMonthNotMatch},
 	}
 
 	for _, test := range tests {
