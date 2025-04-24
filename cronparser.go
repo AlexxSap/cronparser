@@ -38,34 +38,34 @@ const (
 type valueType uint8
 
 const (
-	typeAll valueType = iota
-	typeSteps
-	typeFromTo
-	typeLst
-	typeSimple
+	valueAll valueType = iota
+	valueSteps
+	valueFromTo
+	valueLst
+	valueSimple
 )
 
 type tokenType uint8
 
 const (
-	minutes tokenType = iota
-	hour
-	dayOfMonth
-	month
-	dayOfWeek
+	tokenMinutes tokenType = iota
+	tokenHour
+	tokenDayOfMonth
+	tokenMonth
+	tokenDayOfWeek
 )
 
 func valueOfDate(date time.Time, tType tokenType) uint8 {
 	switch tType {
-	case minutes:
+	case tokenMinutes:
 		return uint8(date.Minute())
-	case hour:
+	case tokenHour:
 		return uint8(date.Hour())
-	case dayOfMonth:
+	case tokenDayOfMonth:
 		return uint8(date.Day())
-	case month:
+	case tokenMonth:
 		return uint8(date.Month())
-	case dayOfWeek:
+	case tokenDayOfWeek:
 		return uint8(date.Weekday())
 	}
 	return 0
@@ -81,7 +81,7 @@ type token struct {
 
 func newAllToken(minValue, maxValue uint8) (token, error) {
 	return token{
-			vType:    typeAll,
+			vType:    valueAll,
 			minValue: minValue,
 			maxValue: maxValue},
 		nil
@@ -103,7 +103,7 @@ func newStepToken(str string, minValue, maxValue uint8) (token, error) {
 	}
 
 	return token{
-			vType:    typeSteps,
+			vType:    valueSteps,
 			step:     step,
 			minValue: minValue,
 			maxValue: maxValue},
@@ -143,7 +143,7 @@ func newFromToToken(str string, minValue, maxValue uint8) (token, error) {
 	}
 
 	return token{
-			vType:    typeFromTo,
+			vType:    valueFromTo,
 			step:     0,
 			minValue: valFrom,
 			maxValue: valTo},
@@ -168,7 +168,7 @@ func newLstToken(str string, minValue, maxValue uint8) (token, error) {
 	}
 
 	return token{
-			vType:     typeLst,
+			vType:     valueLst,
 			step:      0,
 			minValue:  minValue,
 			maxValue:  maxValue,
@@ -188,7 +188,7 @@ func newSimpleNumberToken(str string, minValue, maxValue uint8) (token, error) {
 	}
 
 	return token{
-			vType:    typeSimple,
+			vType:    valueSimple,
 			step:     val,
 			minValue: minValue,
 			maxValue: maxValue},
@@ -217,15 +217,15 @@ func newToken(str string, minValue, maxValue uint8) (token, error) {
 
 func (tkn token) isMatch(dateTimeValue uint8) bool {
 	switch tkn.vType {
-	case typeAll:
+	case valueAll:
 		return true
-	case typeSteps:
+	case valueSteps:
 		return dateTimeValue%tkn.step == 0
-	case typeFromTo:
+	case valueFromTo:
 		return dateTimeValue >= tkn.minValue && dateTimeValue <= tkn.maxValue
-	case typeLst:
+	case valueLst:
 		return slices.Contains(tkn.lstValues, dateTimeValue)
-	case typeSimple:
+	case valueSimple:
 		return tkn.step == dateTimeValue
 	}
 
@@ -344,23 +344,23 @@ func (crn *CronParser) parse() (result, error) {
 }
 
 func (res result) isMatch(dateTime time.Time) (bool, error) {
-	if !res.minute.isMatch(valueOfDate(dateTime, minutes)) {
+	if !res.minute.isMatch(valueOfDate(dateTime, tokenMinutes)) {
 		return false, errors.New(MinutesNotMatch)
 	}
 
-	if !res.hour.isMatch(valueOfDate(dateTime, hour)) {
+	if !res.hour.isMatch(valueOfDate(dateTime, tokenHour)) {
 		return false, errors.New(HoursNotMatch)
 	}
 
-	if !res.dayOfMonth.isMatch(valueOfDate(dateTime, dayOfMonth)) {
+	if !res.dayOfMonth.isMatch(valueOfDate(dateTime, tokenDayOfMonth)) {
 		return false, errors.New(DayOfMonthNotMatch)
 	}
 
-	if !res.month.isMatch(valueOfDate(dateTime, month)) {
+	if !res.month.isMatch(valueOfDate(dateTime, tokenMonth)) {
 		return false, errors.New(MonthNotMatch)
 	}
 
-	if !res.dayOfWeek.isMatch(valueOfDate(dateTime, dayOfWeek)) {
+	if !res.dayOfWeek.isMatch(valueOfDate(dateTime, tokenDayOfWeek)) {
 		return false, errors.New(DayOfWeekNotMatch)
 	}
 
@@ -387,7 +387,30 @@ func (crn CronParser) IsMatch(dateTime time.Time) (bool, error) {
 	return isMatch, nil
 }
 
-// / TODO добавить комментарии
+type iterator struct {
+	t1 token
+	t2 token
+}
+
+// TODO добавить комментарии
 func (crn CronParser) NearestDate(currentDate time.Time) (time.Time, error) {
-	return time.Date(0, 0, 0, 0, 0, 0, 0, time.UTC), nil
+	parsed, err := crn.parse()
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	// TODO добавить стартовое значение
+	timeIterator := iterator{parsed.minute, parsed.hour}
+	dayIterator := iterator{parsed.dayOfMonth, parsed.month}
+
+	loop, minute, hour := timeIterator.next()
+	if loop {
+		/// TODO год
+		loop, day, month := dayIterator.next()
+		if loop {
+			_, min, hour = timeIterator.next()
+		}
+	}
+
+	return time.Time{}, nil
 }

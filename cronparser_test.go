@@ -101,12 +101,13 @@ func TestNearestDate(t *testing.T) {
 		expectedDate time.Time
 		err          string
 	}{
-		{"/5 14 6-11 1 mon", date(2025, 1, 6, 14, 12), date(2025, 1, 6, 14, 15), ""},
+		{"/5 14 6-11 1 mon", date(2025, 2, 6, 14, 12), date(2025, 1, 6, 14, 15), ""},
 		{"/5 14 6-11 1 mon", date(2025, 1, 6, 13, 55), date(2025, 1, 6, 14, 0), ""},
 
 		/// TODO кейс на день месяца
 		/// TODO кейс на месяц
 		/// TODO кейс на день недели
+		/// TODO дата может не подходить
 	}
 
 	for _, test := range tests {
