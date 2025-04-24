@@ -120,6 +120,22 @@ func TestNearestDate(t *testing.T) {
 	}
 }
 
+func TestDateLoop(t *testing.T) {
+	act := date(2025, 13, 12, 0, 0)
+	exp := date(2026, 1, 12, 0, 0)
+
+	if act != exp {
+		t.Error("dates not match")
+	}
+
+	act = date(2025, 1, 12, 13, 77)
+	exp = date(2025, 1, 12, 14, 17)
+
+	if act != exp {
+		t.Error("times not match")
+	}
+}
+
 func BenchmarkIsMatch(b *testing.B) {
 	pattern := "%d %d 1-%d 3-%d 2-5"
 	for i := 0; i < b.N; i++ {

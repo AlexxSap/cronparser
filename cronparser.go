@@ -394,23 +394,24 @@ type iterator struct {
 
 // TODO добавить комментарии
 func (crn CronParser) NearestDate(currentDate time.Time) (time.Time, error) {
-	parsed, err := crn.parse()
-	if err != nil {
-		return time.Time{}, err
-	}
-
-	// TODO добавить стартовое значение
-	timeIterator := iterator{parsed.minute, parsed.hour}
-	dayIterator := iterator{parsed.dayOfMonth, parsed.month}
-
-	loop, minute, hour := timeIterator.next()
-	if loop {
-		/// TODO год
-		loop, day, month := dayIterator.next()
-		if loop {
-			_, min, hour = timeIterator.next()
+	/*
+		parsed, err := crn.parse()
+		if err != nil {
+			return time.Time{}, err
 		}
-	}
 
-	return time.Time{}, nil
+		// TODO добавить стартовое значение
+		timeIterator := iterator{parsed.minute, parsed.hour}
+		dayIterator := iterator{parsed.dayOfMonth, parsed.month}
+
+		loop, minute, hour := timeIterator.next()
+		if loop {
+			loop, day, month := dayIterator.next()
+			if loop {
+				_, min, hour = timeIterator.next()
+			}
+		}
+	*/
+
+	return currentDate, nil
 }
