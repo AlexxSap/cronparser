@@ -79,6 +79,10 @@ type token struct {
 	lstValues []uint8
 }
 
+func (tkn token) next() (uint8, bool, uint8) {
+
+}
+
 func newAllToken(minValue, maxValue uint8) (token, error) {
 	return token{
 			vType:    valueAll,
@@ -166,6 +170,7 @@ func newLstToken(str string, minValue, maxValue uint8) (token, error) {
 		}
 		values = append(values, val)
 	}
+	slices.Sort(values)
 
 	return token{
 			vType:     valueLst,
@@ -387,31 +392,42 @@ func (crn CronParser) IsMatch(dateTime time.Time) (bool, error) {
 	return isMatch, nil
 }
 
-type iterator struct {
-	t1 token
-	t2 token
-}
-
 // TODO добавить комментарии
+// TODO добавить исполняемый пример
 func (crn CronParser) NearestDate(currentDate time.Time) (time.Time, error) {
-	/*
-		parsed, err := crn.parse()
-		if err != nil {
-			return time.Time{}, err
-		}
+	parsed, err := crn.parse()
+	if err != nil {
+		return time.Time{}, err
+	}
 
-		// TODO добавить стартовое значение
-		timeIterator := iterator{parsed.minute, parsed.hour}
-		dayIterator := iterator{parsed.dayOfMonth, parsed.month}
+	newMinute, loop, minMinute := parsed.minute.next()
+	newHour, loop, minHour := parsed.hour.next()
+	if loop {
+		newMinute = minMinute
+	}
 
-		loop, minute, hour := timeIterator.next()
-		if loop {
-			loop, day, month := dayIterator.next()
-			if loop {
-				_, min, hour = timeIterator.next()
-			}
-		}
-	*/
+	newDay, loop, minDay := parsed.dayOfMonth.next()
+	if loop {
+		newHour = minHour
+		newMinute = minMinute
+	}
 
-	return currentDate, nil
+	newMonth, loop, _ := parsed.month.next()
+	/// TODO добавить проверку дня недели
+	// for !parsed.dayOfWeek.isMatch(newDay) {
+	// newDay, loop, minDay = parsed.dayOfMonth.next()
+	// }
+
+	if loop {
+		newDay = minDay
+		newHour = minHour
+		newMinute = minMinute
+	}
+
+	newYear := currentDate.Year()
+	if loop {
+		newYear = newYear + 1
+	}
+
+	return time.Date(newYear, int(newMonth), int(newDay), int(newHour), int(newMinute), 0, 0, currentDate.Location()), nil
 }
