@@ -485,12 +485,28 @@ func (crn CronParser) NearestDate(currentDate time.Time) (time.Time, error) {
 		}
 	}
 	newHour, loop, minHour := parsed.hour.next(valueOfDate(currentDate, tokenHour))
-	if loop {
+	if loop || newHour != uint8(currentDate.Hour()) {
 		newMinute = minMinute
 	}
 
+	if !loop {
+		/// TODO придумать способ нормально задавать дату
+		newDate := time.Date(
+			currentDate.Year(),
+			currentDate.Month(),
+			currentDate.Day(),
+			int(newHour),
+			int(newMinute),
+			0,
+			0,
+			currentDate.Location())
+		if res, _ := parsed.isMatch(newDate); res {
+			return newDate, nil
+		}
+	}
+
 	newDay, loop, minDay := parsed.dayOfMonth.next(valueOfDate(currentDate, tokenDayOfMonth))
-	if loop {
+	if loop || newDay != uint8(currentDate.Day()) {
 		newHour = minHour
 		newMinute = minMinute
 	}
@@ -501,7 +517,7 @@ func (crn CronParser) NearestDate(currentDate time.Time) (time.Time, error) {
 	// newDay, loop, minDay = parsed.dayOfMonth.next()
 	// }
 
-	if loop {
+	if loop || newMonth != uint8(currentDate.Month()) {
 		newDay = minDay
 		newHour = minHour
 		newMinute = minMinute
