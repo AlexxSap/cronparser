@@ -79,8 +79,74 @@ type token struct {
 	lstValues []uint8
 }
 
-func (tkn token) next() (uint8, bool, uint8) {
+func nextSimpleValue(val uint8, simpleValue uint8) (uint8, bool) {
+	return simpleValue, val > simpleValue
+}
 
+func nextAllValue(val, minVal, maxVal uint8) (uint8, bool) {
+	if val < minVal {
+		return minVal, false
+	} else if val < maxVal {
+		return val + 1, false
+	} else {
+		return minVal, true
+	}
+}
+
+func nextStepValue(val, minVal, maxVal, step uint8) (uint8, bool) {
+	if val < minVal {
+		return minVal, false
+	} else if val < maxVal {
+		return ((val - minVal) / step) * step, false
+	} else {
+		return minVal, true
+	}
+}
+
+func nextFromToValue(val, minVal, maxVal uint8) (uint8, bool) {
+	if val < minVal {
+		return minVal, false
+	} else if val < maxVal {
+		return val + 1, false
+	} else {
+		return minVal, true
+	}
+}
+
+func nextLstValue(val uint8, lst []uint8) (uint8, bool) {
+	if val < lst[0] {
+		return lst[0], false
+	} else if val < lst[len(lst)-1] {
+		for _, lstVal := range lst {
+			if val < lstVal {
+				return lstVal, false
+			}
+		}
+		return lst[0], true
+	} else {
+		return lst[0], true
+	}
+}
+
+func (tkn token) next(currentValue uint8) (uint8, bool, uint8) {
+	var nextValue uint8
+	var loop bool
+	minValue := tkn.minValue
+	switch tkn.vType {
+	case valueAll:
+		nextValue, loop = nextAllValue(currentValue, tkn.minValue, tkn.maxValue)
+	case valueSteps:
+		nextValue, loop = nextStepValue(currentValue, tkn.minValue, tkn.maxValue, tkn.step)
+	case valueFromTo:
+		nextValue, loop = nextFromToValue(currentValue, tkn.minValue, tkn.maxValue)
+	case valueLst:
+		nextValue, loop = nextLstValue(currentValue, tkn.lstValues)
+	case valueSimple:
+		nextValue, loop = nextSimpleValue(currentValue, tkn.step)
+		minValue = tkn.step
+	}
+
+	return nextValue, loop, minValue
 }
 
 func newAllToken(minValue, maxValue uint8) (token, error) {
@@ -298,12 +364,12 @@ func tokenize(str string) (result, error) {
 		return result{}, errors.New(ErrorValidationTokensCount)
 	}
 
-	minute, err := newToken(strTokens[0], 1, 59)
+	minute, err := newToken(strTokens[0], 0, 59)
 	if err != nil {
 		return result{}, err
 	}
 
-	hour, err := newToken(strTokens[1], 1, 23)
+	hour, err := newToken(strTokens[1], 0, 23)
 	if err != nil {
 		return result{}, err
 	}
@@ -400,19 +466,20 @@ func (crn CronParser) NearestDate(currentDate time.Time) (time.Time, error) {
 		return time.Time{}, err
 	}
 
-	newMinute, loop, minMinute := parsed.minute.next()
-	newHour, loop, minHour := parsed.hour.next()
+	/// TODO добавить проверку - нужно ли проверять следующий токен
+	newMinute, loop, minMinute := parsed.minute.next(valueOfDate(currentDate, tokenMinutes))
+	newHour, loop, minHour := parsed.hour.next(valueOfDate(currentDate, tokenHour))
 	if loop {
 		newMinute = minMinute
 	}
 
-	newDay, loop, minDay := parsed.dayOfMonth.next()
+	newDay, loop, minDay := parsed.dayOfMonth.next(valueOfDate(currentDate, tokenDayOfMonth))
 	if loop {
 		newHour = minHour
 		newMinute = minMinute
 	}
 
-	newMonth, loop, _ := parsed.month.next()
+	newMonth, loop, _ := parsed.month.next(valueOfDate(currentDate, tokenMonth))
 	/// TODO добавить проверку дня недели
 	// for !parsed.dayOfWeek.isMatch(newDay) {
 	// newDay, loop, minDay = parsed.dayOfMonth.next()
@@ -429,5 +496,11 @@ func (crn CronParser) NearestDate(currentDate time.Time) (time.Time, error) {
 		newYear = newYear + 1
 	}
 
-	return time.Date(newYear, int(newMonth), int(newDay), int(newHour), int(newMinute), 0, 0, currentDate.Location()), nil
+	fmt.Println("year", newYear)
+	fmt.Println("month", newMonth)
+	fmt.Println("day", newDay)
+	fmt.Println("hour", newHour)
+	fmt.Println("min", newMinute)
+
+	return time.Date(newYear, time.Month(newMonth), int(newDay), int(newHour), int(newMinute), 0, 0, currentDate.Location()), nil
 }
