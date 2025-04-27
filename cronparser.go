@@ -460,6 +460,7 @@ func (crn CronParser) IsMatch(dateTime time.Time) (bool, error) {
 
 // TODO добавить комментарии
 // TODO добавить исполняемый пример
+// TODO добавить бенчмарк на сравнение с простым перебором дат
 func (crn CronParser) NearestDate(currentDate time.Time) (time.Time, error) {
 	parsed, err := crn.parse()
 	if err != nil {
@@ -468,6 +469,21 @@ func (crn CronParser) NearestDate(currentDate time.Time) (time.Time, error) {
 
 	/// TODO добавить проверку - нужно ли проверять следующий токен
 	newMinute, loop, minMinute := parsed.minute.next(valueOfDate(currentDate, tokenMinutes))
+	if !loop {
+		/// TODO придумать способ нормально задавать дату
+		newDate := time.Date(
+			currentDate.Year(),
+			currentDate.Month(),
+			currentDate.Day(),
+			currentDate.Hour(),
+			int(newMinute),
+			0,
+			0,
+			currentDate.Location())
+		if res, _ := parsed.isMatch(newDate); res {
+			return newDate, nil
+		}
+	}
 	newHour, loop, minHour := parsed.hour.next(valueOfDate(currentDate, tokenHour))
 	if loop {
 		newMinute = minMinute
