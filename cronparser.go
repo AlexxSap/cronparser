@@ -458,6 +458,38 @@ func (crn CronParser) IsMatch(dateTime time.Time) (bool, error) {
 	return isMatch, nil
 }
 
+type DateBuilder struct {
+	d time.Time
+}
+
+func (date DateBuilder) dateTime() time.Time {
+	return date.d
+}
+
+func (date DateBuilder) setHour(h uint8) DateBuilder {
+	return DateBuilder{time.Date(
+		date.d.Year(),
+		date.d.Month(),
+		date.d.Day(),
+		int(h),
+		date.d.Minute(),
+		date.d.Second(),
+		date.d.Nanosecond(),
+		date.d.Location())}
+}
+
+func (date DateBuilder) setMinute(m uint8) DateBuilder {
+	return DateBuilder{time.Date(
+		date.d.Year(),
+		date.d.Month(),
+		date.d.Day(),
+		date.d.Hour(),
+		int(m),
+		date.d.Second(),
+		date.d.Nanosecond(),
+		date.d.Location())}
+}
+
 // TODO добавить комментарии
 // TODO добавить исполняемый пример
 // TODO добавить бенчмарк на сравнение с простым перебором дат
@@ -471,15 +503,7 @@ func (crn CronParser) NearestDate(currentDate time.Time) (time.Time, error) {
 	newMinute, loop, minMinute := parsed.minute.next(valueOfDate(currentDate, tokenMinutes))
 	if !loop {
 		/// TODO придумать способ нормально задавать дату
-		newDate := time.Date(
-			currentDate.Year(),
-			currentDate.Month(),
-			currentDate.Day(),
-			currentDate.Hour(),
-			int(newMinute),
-			0,
-			0,
-			currentDate.Location())
+		newDate := DateBuilder{currentDate}.setMinute(newMinute).dateTime()
 		if res, _ := parsed.isMatch(newDate); res {
 			return newDate, nil
 		}
@@ -490,16 +514,7 @@ func (crn CronParser) NearestDate(currentDate time.Time) (time.Time, error) {
 	}
 
 	if !loop {
-		/// TODO придумать способ нормально задавать дату
-		newDate := time.Date(
-			currentDate.Year(),
-			currentDate.Month(),
-			currentDate.Day(),
-			int(newHour),
-			int(newMinute),
-			0,
-			0,
-			currentDate.Location())
+		newDate := DateBuilder{currentDate}.setMinute(newMinute).setHour(newHour).dateTime()
 		if res, _ := parsed.isMatch(newDate); res {
 			return newDate, nil
 		}
