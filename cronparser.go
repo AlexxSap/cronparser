@@ -80,7 +80,7 @@ type token struct {
 }
 
 func nextSimpleValue(val uint8, simpleValue uint8) (uint8, bool) {
-	return simpleValue, val > simpleValue
+	return simpleValue, val >= simpleValue
 }
 
 func nextAllValue(val, minVal, maxVal uint8) (uint8, bool) {
@@ -459,35 +459,51 @@ func (crn CronParser) IsMatch(dateTime time.Time) (bool, error) {
 }
 
 type DateBuilder struct {
-	d time.Time
+	minutes  uint8
+	hour     uint8
+	day      uint8
+	month    uint8
+	year     uint16
+	location *time.Location
 }
 
-func (date DateBuilder) dateTime() time.Time {
-	return date.d
+func NewDateBuilder(d time.Time) DateBuilder {
+	return DateBuilder{
+		minutes:  uint8(d.Minute()),
+		hour:     uint8(d.Hour()),
+		day:      uint8(d.Day()),
+		month:    uint8(d.Month()),
+		year:     uint16(d.Year()),
+		location: d.Location(),
+	}
 }
 
-func (date DateBuilder) setHour(h uint8) DateBuilder {
-	return DateBuilder{time.Date(
-		date.d.Year(),
-		date.d.Month(),
-		date.d.Day(),
-		int(h),
-		date.d.Minute(),
-		date.d.Second(),
-		date.d.Nanosecond(),
-		date.d.Location())}
+func (b DateBuilder) dateTime() time.Time {
+	return time.Date(
+		int(b.year),
+		time.Month(b.month),
+		int(b.day),
+		int(b.hour),
+		int(b.minutes),
+		0,
+		0,
+		b.location)
 }
 
-func (date DateBuilder) setMinute(m uint8) DateBuilder {
-	return DateBuilder{time.Date(
-		date.d.Year(),
-		date.d.Month(),
-		date.d.Day(),
-		date.d.Hour(),
-		int(m),
-		date.d.Second(),
-		date.d.Nanosecond(),
-		date.d.Location())}
+func (b *DateBuilder) setMonth(m uint8) {
+	b.month = m
+}
+
+func (b *DateBuilder) setDay(d uint8) {
+	b.day = d
+}
+
+func (b *DateBuilder) setHour(h uint8) {
+	b.hour = h
+}
+
+func (b *DateBuilder) setMinute(m uint8) {
+	b.minutes = m
 }
 
 // TODO добавить комментарии
@@ -499,55 +515,63 @@ func (crn CronParser) NearestDate(currentDate time.Time) (time.Time, error) {
 		return time.Time{}, err
 	}
 
-	/// TODO добавить проверку - нужно ли проверять следующий токен
-	newMinute, loop, minMinute := parsed.minute.next(valueOfDate(currentDate, tokenMinutes))
-	if !loop {
-		/// TODO придумать способ нормально задавать дату
-		newDate := DateBuilder{currentDate}.setMinute(newMinute).dateTime()
-		if res, _ := parsed.isMatch(newDate); res {
-			return newDate, nil
-		}
-	}
-	newHour, loop, minHour := parsed.hour.next(valueOfDate(currentDate, tokenHour))
-	if loop || newHour != uint8(currentDate.Hour()) {
-		newMinute = minMinute
-	}
+	newDate := NewDateBuilder(currentDate)
 
+	newMinute, loop, minMinute := parsed.minute.next(newDate.minutes)
+	newDate.setMinute(newMinute)
 	if !loop {
-		newDate := DateBuilder{currentDate}.setMinute(newMinute).setHour(newHour).dateTime()
-		if res, _ := parsed.isMatch(newDate); res {
-			return newDate, nil
+		d := newDate.dateTime()
+		if res, _ := parsed.isMatch(d); res {
+			return d, nil
 		}
 	}
 
-	newDay, loop, minDay := parsed.dayOfMonth.next(valueOfDate(currentDate, tokenDayOfMonth))
-	if loop || newDay != uint8(currentDate.Day()) {
-		newHour = minHour
-		newMinute = minMinute
+	newHour, loop, minHour := parsed.hour.next(newDate.hour)
+	if loop || newHour != newDate.hour {
+		newDate.setMinute(minMinute)
 	}
 
-	newMonth, loop, _ := parsed.month.next(valueOfDate(currentDate, tokenMonth))
+	newDate.setHour(newHour)
+	if !loop {
+		d := newDate.dateTime()
+		if res, _ := parsed.isMatch(d); res {
+			return d, nil
+		}
+	}
+
+	newDay, loop, minDay := parsed.dayOfMonth.next(newDate.day)
+	if loop || newDay != newDate.day {
+		newDate.setHour(minHour)
+	}
+	fmt.Println("minDay", minDay)
+	fmt.Println("loop", loop)
+	fmt.Println("newDay", newDay)
+
+	newDate.setDay(newDay)
+	if !loop {
+		d := newDate.dateTime()
+		if res, _ := parsed.isMatch(d); res {
+			return d, nil
+		}
+	}
+
+	newMonth, loop, minMonth := parsed.month.next(newDate.month)
 	/// TODO добавить проверку дня недели
 	// for !parsed.dayOfWeek.isMatch(newDay) {
 	// newDay, loop, minDay = parsed.dayOfMonth.next()
 	// }
 
-	if loop || newMonth != uint8(currentDate.Month()) {
-		newDay = minDay
-		newHour = minHour
-		newMinute = minMinute
+	fmt.Println("minMonth", minMonth)
+	fmt.Println("loop", loop)
+	fmt.Println("newMonth", newMonth)
+	if loop || newMonth != newDate.month {
+		newDate.setDay(minDay)
 	}
-
-	newYear := currentDate.Year()
+	newDate.setMonth(newMonth)
 	if loop {
-		newYear = newYear + 1
+		newDate.year = newDate.year + 1
+		newDate.setMonth(minMonth)
 	}
 
-	fmt.Println("year", newYear)
-	fmt.Println("month", newMonth)
-	fmt.Println("day", newDay)
-	fmt.Println("hour", newHour)
-	fmt.Println("min", newMinute)
-
-	return time.Date(newYear, time.Month(newMonth), int(newDay), int(newHour), int(newMinute), 0, 0, currentDate.Location()), nil
+	return newDate.dateTime(), nil
 }
