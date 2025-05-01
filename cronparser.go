@@ -516,62 +516,53 @@ func (crn CronParser) NearestDate(currentDate time.Time) (time.Time, error) {
 	}
 
 	newDate := NewDateBuilder(currentDate)
+	for needLoop := false; !needLoop; needLoop = parsed.dayOfWeek.isMatch(valueOfDate(newDate.dateTime(), tokenDayOfWeek)) {
+		newMinute, loop, minMinute := parsed.minute.next(newDate.minutes)
+		newDate.setMinute(newMinute)
+		if !loop {
+			d := newDate.dateTime()
+			if res, _ := parsed.isMatch(d); res {
+				return d, nil
+			}
+		}
 
-	newMinute, loop, minMinute := parsed.minute.next(newDate.minutes)
-	newDate.setMinute(newMinute)
-	if !loop {
-		d := newDate.dateTime()
-		if res, _ := parsed.isMatch(d); res {
-			return d, nil
+		newHour, loop, minHour := parsed.hour.next(newDate.hour)
+		if loop || newHour != newDate.hour {
+			newDate.setMinute(minMinute)
+		}
+
+		newDate.setHour(newHour)
+		if !loop {
+			d := newDate.dateTime()
+			if res, _ := parsed.isMatch(d); res {
+				return d, nil
+			}
+		}
+
+		newDay, loop, minDay := parsed.dayOfMonth.next(newDate.day)
+		if loop || newDay != newDate.day {
+			newDate.setHour(minHour)
+		}
+
+		newDate.setDay(newDay)
+		if !loop {
+			d := newDate.dateTime()
+			if res, err := parsed.isMatch(d); res {
+				return d, nil
+			} else if err != nil && err.Error() == DayOfWeekNotMatch {
+				continue
+			}
+		}
+
+		newMonth, loop, minMonth := parsed.month.next(newDate.month)
+		if loop || newMonth != newDate.month {
+			newDate.setDay(minDay)
+		}
+		newDate.setMonth(newMonth)
+		if loop {
+			newDate.year = newDate.year + 1
+			newDate.setMonth(minMonth)
 		}
 	}
-
-	newHour, loop, minHour := parsed.hour.next(newDate.hour)
-	if loop || newHour != newDate.hour {
-		newDate.setMinute(minMinute)
-	}
-
-	newDate.setHour(newHour)
-	if !loop {
-		d := newDate.dateTime()
-		if res, _ := parsed.isMatch(d); res {
-			return d, nil
-		}
-	}
-
-	newDay, loop, minDay := parsed.dayOfMonth.next(newDate.day)
-	if loop || newDay != newDate.day {
-		newDate.setHour(minHour)
-	}
-	fmt.Println("minDay", minDay)
-	fmt.Println("loop", loop)
-	fmt.Println("newDay", newDay)
-
-	newDate.setDay(newDay)
-	if !loop {
-		d := newDate.dateTime()
-		if res, _ := parsed.isMatch(d); res {
-			return d, nil
-		}
-	}
-
-	newMonth, loop, minMonth := parsed.month.next(newDate.month)
-	/// TODO добавить проверку дня недели
-	// for !parsed.dayOfWeek.isMatch(newDay) {
-	// newDay, loop, minDay = parsed.dayOfMonth.next()
-	// }
-
-	fmt.Println("minMonth", minMonth)
-	fmt.Println("loop", loop)
-	fmt.Println("newMonth", newMonth)
-	if loop || newMonth != newDate.month {
-		newDate.setDay(minDay)
-	}
-	newDate.setMonth(newMonth)
-	if loop {
-		newDate.year = newDate.year + 1
-		newDate.setMonth(minMonth)
-	}
-
 	return newDate.dateTime(), nil
 }
