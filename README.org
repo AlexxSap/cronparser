@@ -1,4 +1,4 @@
-[![GoDoc](http://godoc.org/github.com/AlexxSap/cronparser?status.png)](http://godoc.org/github.com/AlexxSap/cronparser)
+[[https://pkg.go.dev/github.com/AlexxSap/cronparser][http://godoc.org/github.com/AlexxSap/cronparser?status.png]]
 
 *  cronparser
 
