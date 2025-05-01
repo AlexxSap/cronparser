@@ -1,5 +1,6 @@
 package cronparser
 
+/// TODO добавить комментарии пакета
 import (
 	"errors"
 	"fmt"
@@ -506,9 +507,14 @@ func (b *DateBuilder) setMinute(m uint8) {
 	b.minutes = m
 }
 
-// TODO добавить комментарии
-// TODO добавить исполняемый пример
 // TODO добавить бенчмарк на сравнение с простым перебором дат
+
+// NearestDate return date that nearest for the specified date and matches the cron expression.
+// Parameters:
+// - dateTime: object of time.Time to check
+// Returns:
+// - nearest date
+// - error with failure case (if expression not valid)
 func (crn CronParser) NearestDate(currentDate time.Time) (time.Time, error) {
 	parsed, err := crn.parse()
 	if err != nil {
