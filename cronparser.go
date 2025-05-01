@@ -1,6 +1,23 @@
+// Package cronparser provides simple cron-string parsing.
+// Cron string is a string like '0 9 * * 6' that hold info about periodical date.
+// The package provides the ability to check
+// 1. whether a date is suitable for a cron string and
+// 2. to find the nearest date that satisfies the cron string.
+//
+// Examples
+// check date:
+// actual, err := NewCronParser("/5 14 6-11 1 mon").IsMatch(time.Date(2025, 1, 6, 14, 35, 0, 0, time.UTC))
+// Output:
+// actual: true
+// err: <nil>
+//
+// find nearest date:
+// actual, err := NewCronParser("/5 14 6-11 4,1 *").NearestDate(time.Date(2025, 1, 12, 15, 55, 0, 0, time.UTC))
+// Output:
+// actual: 2025-04-06 14:00:00 +0000 UTC
+// err: <nil>
 package cronparser
 
-/// TODO добавить комментарии пакета
 import (
 	"errors"
 	"fmt"
