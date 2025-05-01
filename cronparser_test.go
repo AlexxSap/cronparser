@@ -170,3 +170,12 @@ func ExampleCronParser_IsMatch_second() {
 	// actual: false
 	// err: DayOfWeekNotMatch
 }
+
+func ExampleCronParser_NearestDate() {
+	actual, err := NewCronParser("/5 14 6-11 4,1 *").NearestDate(time.Date(2025, 1, 12, 15, 55, 0, 0, time.UTC))
+	fmt.Println("actual:", actual)
+	fmt.Println("err:", err)
+	// Output:
+	// actual: 2025-04-06 14:00:00 +0000 UTC
+	// err: <nil>
+}
