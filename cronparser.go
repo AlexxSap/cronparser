@@ -333,12 +333,14 @@ type result struct {
 	dayOfWeek  token
 }
 
+// CronParser is a structure that provides the ability to manipulate a cron-string
 type CronParser struct {
 	cronString          string
 	alreadyParsedResult result
 	hasResult           bool
 }
 
+// NewCronParser create new object that hold cron-string and provides function for madipulate with dates
 func NewCronParser(str string) CronParser {
 	return CronParser{
 		cronString:          str,
