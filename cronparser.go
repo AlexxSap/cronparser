@@ -532,8 +532,6 @@ func (b *dateBuilder) setMinute(m uint8) {
 	b.minutes = m
 }
 
-// TODO добавить бенчмарк на сравнение с простым перебором дат
-
 // NearestDate return date that nearest for the specified date and matches the cron expression.
 //
 // Parameters:

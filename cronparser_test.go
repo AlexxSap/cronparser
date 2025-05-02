@@ -153,6 +153,38 @@ func BenchmarkIsMatch(b *testing.B) {
 	}
 }
 
+func NearestDateBrut(crn CronParser, currentDate time.Time) (time.Time, error) {
+	parsed, err := crn.parse()
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	for d := currentDate; true; d = d.Add(1 * time.Minute) {
+		if ok, _ := parsed.isMatch(d); ok {
+			return d, nil
+		}
+	}
+
+	return currentDate, nil
+}
+
+// cpu: Intel(R) Core(TM) i5-2410M CPU @ 2.30GHz
+// BenchmarkNearestDate-4            435880              2907 ns/op
+// BenchmarkBrutNearestDate-4           163           8001656 ns/op
+func BenchmarkNearestDate(b *testing.B) {
+	pattern := "%d %d 1-%d 3-%d 2-5"
+	for i := 0; i < b.N; i++ {
+		NewCronParser(fmt.Sprintf(pattern, i%60, i%24, i%25, i%12)).NearestDate(date(2025, 1, 6, 14, 15))
+	}
+}
+
+func BenchmarkBrutNearestDate(b *testing.B) {
+	pattern := "%d %d 1-%d 3-%d 2-5"
+	for i := 0; i < b.N; i++ {
+		NearestDateBrut(NewCronParser(fmt.Sprintf(pattern, i%60, i%24, i%25, i%12)), date(2025, 1, 6, 14, 15))
+	}
+}
+
 func ExampleCronParser_IsMatch() {
 	actual, err := NewCronParser("/5 14 6-11 1 mon").IsMatch(time.Date(2025, 1, 6, 14, 35, 0, 0, time.UTC))
 	fmt.Println("actual:", actual)
