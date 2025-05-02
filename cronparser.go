@@ -1,21 +1,25 @@
 // Package cronparser provides simple cron-string parsing.
+//
 // Cron string is a string like '0 9 * * 6' that hold info about periodical date.
 // The package provides the ability to check
 // 1. whether a date is suitable for a cron string and
 // 2. to find the nearest date that satisfies the cron string.
 //
-// Examples
+// # Examples
+//
 // check date:
-// actual, err := NewCronParser("/5 14 6-11 1 mon").IsMatch(time.Date(2025, 1, 6, 14, 35, 0, 0, time.UTC))
-// Output:
-// actual: true
-// err: <nil>
+//
+//	actual, err := NewCronParser("/5 14 6-11 1 mon").IsMatch(time.Date(2025, 1, 6, 14, 35, 0, 0, time.UTC))
+//	Output:
+//	actual: true
+//	err: <nil>
 //
 // find nearest date:
-// actual, err := NewCronParser("/5 14 6-11 4,1 *").NearestDate(time.Date(2025, 1, 12, 15, 55, 0, 0, time.UTC))
-// Output:
-// actual: 2025-04-06 14:00:00 +0000 UTC
-// err: <nil>
+//
+//	actual, err := NewCronParser("/5 14 6-11 4,1 *").NearestDate(time.Date(2025, 1, 12, 15, 55, 0, 0, time.UTC))
+//	Output:
+//	actual: 2025-04-06 14:00:00 +0000 UTC
+//	err: <nil>
 package cronparser
 
 import (
@@ -457,11 +461,15 @@ func (res result) isMatch(dateTime time.Time) (bool, error) {
 }
 
 // IsMatch checks whether the specified date matches the expression.
+//
 // Parameters:
-// - dateTime: object of time.Time to check
+//
+//   - dateTime: object of time.Time to check
+//
 // Returns:
-// - the result of checking (true or false)
-// - error with failure case (if first result is false)
+//
+//   - the result of checking (true or false)
+//   - error with failure case (if first result is false)
 func (crn CronParser) IsMatch(dateTime time.Time) (bool, error) {
 	parsed, err := crn.parse()
 	if err != nil {
@@ -476,7 +484,7 @@ func (crn CronParser) IsMatch(dateTime time.Time) (bool, error) {
 	return isMatch, nil
 }
 
-type DateBuilder struct {
+type dateBuilder struct {
 	minutes  uint8
 	hour     uint8
 	day      uint8
@@ -485,8 +493,8 @@ type DateBuilder struct {
 	location *time.Location
 }
 
-func NewDateBuilder(d time.Time) DateBuilder {
-	return DateBuilder{
+func newDateBuilder(d time.Time) dateBuilder {
+	return dateBuilder{
 		minutes:  uint8(d.Minute()),
 		hour:     uint8(d.Hour()),
 		day:      uint8(d.Day()),
@@ -496,7 +504,7 @@ func NewDateBuilder(d time.Time) DateBuilder {
 	}
 }
 
-func (b DateBuilder) dateTime() time.Time {
+func (b dateBuilder) dateTime() time.Time {
 	return time.Date(
 		int(b.year),
 		time.Month(b.month),
@@ -508,37 +516,41 @@ func (b DateBuilder) dateTime() time.Time {
 		b.location)
 }
 
-func (b *DateBuilder) setMonth(m uint8) {
+func (b *dateBuilder) setMonth(m uint8) {
 	b.month = m
 }
 
-func (b *DateBuilder) setDay(d uint8) {
+func (b *dateBuilder) setDay(d uint8) {
 	b.day = d
 }
 
-func (b *DateBuilder) setHour(h uint8) {
+func (b *dateBuilder) setHour(h uint8) {
 	b.hour = h
 }
 
-func (b *DateBuilder) setMinute(m uint8) {
+func (b *dateBuilder) setMinute(m uint8) {
 	b.minutes = m
 }
 
 // TODO добавить бенчмарк на сравнение с простым перебором дат
 
 // NearestDate return date that nearest for the specified date and matches the cron expression.
+//
 // Parameters:
-// - dateTime: object of time.Time to check
+//
+//  - dateTime: object of time.Time to check
+
 // Returns:
-// - nearest date
-// - error with failure case (if expression not valid)
+//
+//   - nearest date
+//   - error with failure case (if expression not valid)
 func (crn CronParser) NearestDate(currentDate time.Time) (time.Time, error) {
 	parsed, err := crn.parse()
 	if err != nil {
 		return time.Time{}, err
 	}
 
-	newDate := NewDateBuilder(currentDate)
+	newDate := newDateBuilder(currentDate)
 	for needLoop := false; !needLoop; needLoop = parsed.dayOfWeek.isMatch(valueOfDate(newDate.dateTime(), tokenDayOfWeek)) {
 		newMinute, loop, minMinute := parsed.minute.next(newDate.minutes)
 		newDate.setMinute(newMinute)
