@@ -29,6 +29,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 	"unicode/utf8"
 )
 
@@ -203,8 +204,12 @@ func newStepToken(str string, minValue, maxValue uint8) (token, error) {
 }
 
 func newFromToToken(str string, minValue, maxValue uint8) (token, error) {
-	nums := strings.Split(str, symFromTo)
-	if len(nums) != 2 {
+	ind := strings.Index(str, symFromTo)
+	if ind == -1 {
+		return token{}, errors.New(InvalidFromToValuesSize)
+	}
+
+	if strings.Index(str[ind+1:], symFromTo) != -1 {
 		return token{}, errors.New(InvalidFromToValuesSize)
 	}
 
@@ -221,11 +226,11 @@ func newFromToToken(str string, minValue, maxValue uint8) (token, error) {
 		return val, nil
 	}
 
-	valFrom, err := getValue(nums[0])
+	valFrom, err := getValue(str[:ind])
 	if err != nil {
 		return token{}, err
 	}
-	valTo, err := getValue(nums[1])
+	valTo, err := getValue(str[ind+1:])
 	if err != nil {
 		return token{}, err
 	}
@@ -348,7 +353,17 @@ func NewCronParser(str string) CronParser {
 		hasResult:           false}
 }
 
+func containsLetter(str string) bool {
+	return strings.ContainsFunc(str, func(r rune) bool {
+		return unicode.IsLetter(r)
+	})
+}
+
 func replaceMonthNamesToNumber(str string) string {
+	if !containsLetter(str) {
+		return str
+	}
+
 	lstr := strings.ToLower(str)
 	lstr = strings.ReplaceAll(lstr, "jan", "1")
 	lstr = strings.ReplaceAll(lstr, "feb", "2")
@@ -367,6 +382,10 @@ func replaceMonthNamesToNumber(str string) string {
 }
 
 func replaceDayNamesToNumber(str string) string {
+	if !containsLetter(str) {
+		return str
+	}
+
 	lstr := strings.ToLower(str)
 	lstr = strings.ReplaceAll(lstr, "mon", "1")
 	lstr = strings.ReplaceAll(lstr, "tue", "2")

@@ -168,18 +168,21 @@ func NearestDateBrut(crn CronParser, currentDate time.Time) (time.Time, error) {
 	return currentDate, nil
 }
 
+// goos: linux
+// goarch: amd64
+// pkg: github.com/AlexxSap/cronparser
 // cpu: Intel(R) Core(TM) i5-2410M CPU @ 2.30GHz
-// BenchmarkNearestDate-4            435880              2907 ns/op
-// BenchmarkBrutNearestDate-4           163           8001656 ns/op
+// BenchmarkNearestDate-4            493902              4017 ns/op             275 B/op         10 allocs/op
+// BenchmarkBrutNearestDate-4           100          10917304 ns/op          982411 B/op      61385 allocs/op
 func BenchmarkNearestDate(b *testing.B) {
-	pattern := "%d %d 1-%d 3-%d 2-5"
+	pattern := "%d %d 1-%d 3,4,%d mon-FRI"
 	for i := 0; i < b.N; i++ {
 		NewCronParser(fmt.Sprintf(pattern, i%60, i%24, i%25, i%12)).NearestDate(date(2025, 1, 6, 14, 15))
 	}
 }
 
 func BenchmarkBrutNearestDate(b *testing.B) {
-	pattern := "%d %d 1-%d 3-%d 2-5"
+	pattern := "%d %d 1-%d 3,4,%d mon-FRI"
 	for i := 0; i < b.N; i++ {
 		NearestDateBrut(NewCronParser(fmt.Sprintf(pattern, i%60, i%24, i%25, i%12)), date(2025, 1, 6, 14, 15))
 	}
