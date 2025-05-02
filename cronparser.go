@@ -538,8 +538,8 @@ func (b *dateBuilder) setMinute(m uint8) {
 //
 // Parameters:
 //
-//  - dateTime: object of time.Time to check
-
+//   - dateTime: object of time.Time to check
+//
 // Returns:
 //
 //   - nearest date
