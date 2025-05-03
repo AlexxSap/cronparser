@@ -172,7 +172,7 @@ func NearestDateBrut(crn CronParser, currentDate time.Time) (time.Time, error) {
 // goarch: amd64
 // pkg: github.com/AlexxSap/cronparser
 // cpu: Intel(R) Core(TM) i5-2410M CPU @ 2.30GHz
-// BenchmarkNearestDate-4            493902              4017 ns/op             275 B/op         10 allocs/op
+// BenchmarkNearestDate-4            558133              3572 ns/op             168 B/op          8 allocs/op
 // BenchmarkBrutNearestDate-4           100          10917304 ns/op          982411 B/op      61385 allocs/op
 func BenchmarkNearestDate(b *testing.B) {
 	pattern := "%d %d 1-%d 3,4,%d mon-FRI"

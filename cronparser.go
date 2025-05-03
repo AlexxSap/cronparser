@@ -397,37 +397,55 @@ func replaceDayNamesToNumber(str string) string {
 	return lstr
 }
 
+func fields(s string) []int {
+	res := make([]int, 0, 4)
+	ind := 0
+	prev := 0
+
+	for prev < len(s) {
+		ind = strings.Index(s[prev:], " ")
+		if ind == -1 {
+			break
+		}
+		prev += ind
+		res = append(res, prev)
+		prev++
+	}
+
+	return res
+}
+
 func tokenize(str string) (result, error) {
 	if len(str) == 0 {
 		return result{}, errors.New(ErrorValidationEmptyString)
 	}
 
-	strTokens := strings.Fields(str)
-	if len(strTokens) != 5 {
+	strTokens := fields(str)
+	if len(strTokens) != 4 {
 		return result{}, errors.New(ErrorValidationTokensCount)
 	}
 
-	minute, err := newToken(strTokens[0], 0, 59)
+	minute, err := newToken(str[:strTokens[0]], 0, 59)
 	if err != nil {
 		return result{}, err
 	}
 
-	hour, err := newToken(strTokens[1], 0, 23)
+	hour, err := newToken(str[strTokens[0]+1:strTokens[1]], 0, 23)
 	if err != nil {
 		return result{}, err
 	}
 
-	dayOfMonth, err := newToken(strTokens[2], 1, 31)
+	dayOfMonth, err := newToken(str[strTokens[1]+1:strTokens[2]], 1, 31)
 	if err != nil {
 		return result{}, err
 	}
 
-	month, err := newToken(replaceMonthNamesToNumber(strTokens[3]), 1, 12)
+	month, err := newToken(replaceMonthNamesToNumber(str[strTokens[2]+1:strTokens[3]]), 1, 12)
 	if err != nil {
 		return result{}, err
 	}
 
-	dayOfWeek, err := newToken(replaceDayNamesToNumber(strTokens[4]), 1, 7)
+	dayOfWeek, err := newToken(replaceDayNamesToNumber(str[strTokens[3]+1:]), 1, 7)
 	if err != nil {
 		return result{}, err
 	}
