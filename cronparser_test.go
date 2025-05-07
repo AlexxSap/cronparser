@@ -58,12 +58,14 @@ func TestIsMatch(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actual, err := NewCronParser(test.cronString).IsMatch(test.date)
-		if actual != test.expected {
-			t.Errorf("fail on string '%v' with date '%v' with err: %v", test.cronString, test.date, err)
-		} else if errToStr(err) != test.err {
-			t.Errorf("fail on string '%v' with date '%v' with err: %v (expected error: '%v')", test.cronString, test.date, err, test.err)
-		}
+		t.Run(test.cronString, func(t *testing.T) {
+			actual, err := NewCronParser(test.cronString).IsMatch(test.date)
+			if actual != test.expected {
+				t.Errorf("fail on string '%v' with date '%v' with err: %v", test.cronString, test.date, err)
+			} else if errToStr(err) != test.err {
+				t.Errorf("fail on string '%v' with date '%v' with err: %v (expected error: '%v')", test.cronString, test.date, err, test.err)
+			}
+		})
 	}
 }
 
@@ -91,10 +93,12 @@ func TestValidationTokenize(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		_, err := tokenize(test.str)
-		if err.Error() != test.err {
-			t.Errorf("fail on string '%v' with error '%v' (expected '%v')", test.str, err, test.err)
-		}
+		t.Run(test.str, func(t *testing.T) {
+			_, err := tokenize(test.str)
+			if err.Error() != test.err {
+				t.Errorf("fail on string '%v' with error '%v' (expected '%v')", test.str, err, test.err)
+			}
+		})
 	}
 }
 
@@ -121,12 +125,14 @@ func TestNearestDate(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		act, err := NewCronParser(test.str).NearestDate(test.currentDate)
-		if act != test.expectedDate {
-			t.Errorf("fail on string '%v' expected '%v' get '%v' with error '%v'", test.str, test.expectedDate, act, err)
-		} else if errToStr(err) != test.err {
-			t.Errorf("fail on string '%v' with error '%v' (expected '%v')", test.str, err, test.err)
-		}
+		t.Run(test.str, func(t *testing.T) {
+			act, err := NewCronParser(test.str).NearestDate(test.currentDate)
+			if act != test.expectedDate {
+				t.Errorf("fail on string '%v' expected '%v' get '%v' with error '%v'", test.str, test.expectedDate, act, err)
+			} else if errToStr(err) != test.err {
+				t.Errorf("fail on string '%v' with error '%v' (expected '%v')", test.str, err, test.err)
+			}
+		})
 	}
 }
 
